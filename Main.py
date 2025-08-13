@@ -3,8 +3,6 @@ import GPUtil
 import psutil
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import time
-# import psutil
 # pip install wmi
 # pip install gputil
 # pip install psutil
@@ -38,7 +36,9 @@ def cpuGetInfo():
     i = wmi.WMI()
     for cpu in i.Win32_Processor():
         cpu_make = cpu.Name
-        return cpu_make
+        cpu_cores = cpu.NumberOfCores
+        cpu_speed = cpu.MaxClockSpeed
+        return cpu_make, cpu_cores, cpu_speed
     
 def gpuGetInfo():
     gpus = GPUtil.getGPUs()
@@ -50,33 +50,48 @@ def gpuGetInfo():
 def cpuGetUsage():
     cpu_usage = psutil.cpu_percent(interval=0)
     return round(cpu_usage)
+def gpuGetUsage():
+    GPUtil.showUtilization() 
 # -- build page
 def cpu_page():
+    cpu_label0 = Label(cpuTab, text="")
+    cpu_label0.grid(row=0, column=0)  
     cpu_label = Label(cpuTab, text="")
-    cpu_label.grid(row=0, column=1)   
-    return cpu_label
+    cpu_label.grid(row=2, column=1, padx=20)   
+    cpu_label1 = Label(cpuTab, text="")
+    cpu_label1.grid(row=2, column=2, padx=20) 
+    cpu_label2 = Label(cpuTab, text="")
+    cpu_label2.grid(row=3, column=1, padx=20) 
+    cpu_label3 = Label(cpuTab, text="")
+    cpu_label3.grid(row=3, column=2, padx=20) 
+    return cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3
 
 def gpu_page():
     gpu_label = Label(gpuTab, text="")
-    gpu_label.grid(row=0, column=1)   
+    gpu_label.grid(row=0, column=0)   
     gpu_label_mem = Label(gpuTab, text="")
     gpu_label_mem.grid(row=1, column=1)   
     return gpu_label, gpu_label_mem
 # -- sets page
 def show_cpu():
-    cpu_label = cpu_page()
-    cpu_make = cpuGetInfo() 
+    cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3 = cpu_page()
+    cpu_make, cpu_cores, cpu_speed = cpuGetInfo() 
+    cpu_label0.config(text="CPU")
     cpu_label.config(text=cpu_make)
+    cpu_label1.config(text=f"Cores: {cpu_cores}")
+    cpu_label2.config(text=f"Max Clock Speed: {cpu_speed} (MHz):")
+    cpu_label3.config(text="Temp: ??")
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
     plot1.set_xticks([])
     canvas = FigureCanvasTkAgg(fig, master=cpuTab)
-    canvas.get_tk_widget().grid(row=1, column=1, padx=40)
+    canvas.get_tk_widget().grid(row=1, column=0, padx=40,columnspan=8)
     notebook.select(cpuTab)
     GraphUsageUpdate(plot1, canvas, cpuTab)
 
 def show_gpu():
+    gpuGetUsage()
     gpu_label, gpu_label_mem = gpu_page()
     gpu_make, gpu_mem = gpuGetInfo() 
     gpu_label.config(text=gpu_make)
@@ -100,15 +115,15 @@ def GraphUpdate(new_value, plot1, canvas):
     plot1.set_ylim(0, 100)
     plot1.set_xticks([])
     canvas.draw()
+    # print("update")
 
 def GraphUsageUpdate(plot1, canvas, tab_frame):
-    print (tab_frame)
-    if tab_frame == "cpuTab":
+    if notebook.tab(notebook.select(), "text").lower() == "CPU".lower():
         new_value = cpuGetUsage()
-    elif tab_frame == "gpuTab":
-        print ("nonbuildyet")
-        # new_value = gpuGetUsage()
-    new_value = cpuGetUsage()
+    elif notebook.tab(notebook.select(), "text").lower() == "GPU".lower():
+        new_value = gpuGetUsage()
+    else:
+        return
     GraphUpdate(new_value, plot1, canvas)
     tab_frame.after(1000, GraphUsageUpdate, plot1, canvas, tab_frame)
 
