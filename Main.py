@@ -19,6 +19,7 @@ root.resizable(width=False, height=False)
 style = ttk.Style()
 style.layout("TNotebook", [])
 style.layout("TNotebook.Tab", [])
+task=None
 # -- builds tabs
 notebook = ttk.Notebook(root)
 cpuTab = Frame(notebook)
@@ -45,13 +46,18 @@ def gpuGetInfo():
     for gpu in gpus:
         gpu_make = gpu.name
         gpu_mem = gpu.memoryTotal
-        return gpu_make, gpu_mem
+        return gpu_make, round(gpu_mem)
 # -- Usage get
 def cpuGetUsage():
     cpu_usage = psutil.cpu_percent(interval=0)
     return round(cpu_usage)
 def gpuGetUsage():
-    GPUtil.showUtilization() 
+    gpus = GPUtil.getGPUs()
+    for gpu in gpus:
+        gpu_usage = gpu.load*100 
+        gpu_FMem = gpu.memoryFree
+        gpu_UMem = gpu.memoryUsed
+        return round(gpu_usage), gpu_FMem, gpu_UMem
 # -- build page
 def cpu_page():
     cpu_label0 = Label(cpuTab, text="")
@@ -67,11 +73,13 @@ def cpu_page():
     return cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3
 
 def gpu_page():
+    gpu_label0 = Label(gpuTab, text="")
+    gpu_label0.grid(row=0, column=0)  
     gpu_label = Label(gpuTab, text="")
-    gpu_label.grid(row=0, column=0)   
+    gpu_label.grid(row=2, column=1, padx=20)   
     gpu_label_mem = Label(gpuTab, text="")
-    gpu_label_mem.grid(row=1, column=1)   
-    return gpu_label, gpu_label_mem
+    gpu_label_mem.grid(row=2, column=2, padx=20)   
+    return gpu_label0, gpu_label, gpu_label_mem
 # -- sets page
 def show_cpu():
     cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3 = cpu_page()
@@ -91,18 +99,19 @@ def show_cpu():
     GraphUsageUpdate(plot1, canvas, cpuTab)
 
 def show_gpu():
-    gpuGetUsage()
-    gpu_label, gpu_label_mem = gpu_page()
+    gpu_label0, gpu_label, gpu_label_mem = gpu_page()
     gpu_make, gpu_mem = gpuGetInfo() 
     gpu_label.config(text=gpu_make)
-    gpu_label_mem.config(text=f"Total VRAM: {gpu_mem} GB")
+    gpu_label0.config(text="GPU")
+    gpu_label_mem.config(text=f"{gpu_mem}: Megabytes")
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
     plot1.set_xticks([])
     canvas = FigureCanvasTkAgg(fig, master=gpuTab)
-    canvas.get_tk_widget().grid(row=2, column=1, padx=40)
+    canvas.get_tk_widget().grid(row=1, column=0, padx=40,columnspan=8)
     notebook.select(gpuTab)
+    GraphUsageUpdate(plot1, canvas, gpuTab)
 
 def show_ram():
     notebook.select(ramTab)
@@ -118,18 +127,34 @@ def GraphUpdate(new_value, plot1, canvas):
     # print("update")
 
 def GraphUsageUpdate(plot1, canvas, tab_frame):
+    global task
     if notebook.tab(notebook.select(), "text").lower() == "CPU".lower():
         new_value = cpuGetUsage()
+        print (new_value)
     elif notebook.tab(notebook.select(), "text").lower() == "GPU".lower():
-        new_value = gpuGetUsage()
+        new_value, gpu_FMem, gpu_UMem  = gpuGetUsage()
+        print (new_value, "print gpu")
+
     else:
         return
     GraphUpdate(new_value, plot1, canvas)
-    tab_frame.after(1000, GraphUsageUpdate, plot1, canvas, tab_frame)
+    if task:
+        root.after_cancel(task)
+
+    task = tab_frame.after(1000, GraphUsageUpdate, plot1, canvas, tab_frame)
+
+def on_close():
+    global task
+    if task:
+        root.after_cancel(task)  # GPT
+    root.destroy()  
+
+root.protocol("WM_DELETE_WINDOW", on_close)
+
 
 Button(root, text="CPU", command=show_cpu, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=0, sticky="nw", padx=10, pady=8)
 Button(root, text="GPU", command=show_gpu, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=1, sticky="nw", padx=10, pady=8)
 Button(root, text="RAM", command=show_ram, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=2,  sticky="nw",padx=10, pady=8)
-Button(root, text="Quit", command=root.destroy, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=3, padx=10, pady=8)
+Button(root, text="Quit", command=on_close, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=3, padx=10, pady=8)
 
 root.mainloop()
