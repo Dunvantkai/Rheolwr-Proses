@@ -27,7 +27,7 @@ ramTab = Frame(notebook)
 notebook.add(cpuTab, text="CPU")
 notebook.add(gpuTab, text="GPU")
 notebook.add(ramTab, text="RAM")
-notebook.grid(row=0, column=5)
+notebook.grid(row=0, column=1)
 # -- graph
 MAX_POINTS = 32
 data = [0] * MAX_POINTS  
@@ -58,13 +58,13 @@ def gpu_page():
     return gpu_label, gpu_label_mem
 # -- sets page
 def show_cpu():
-    fig = Figure(figsize=(4, 1), dpi=100)
+    fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
     plot1.set_xticks([])
-
     canvas = FigureCanvasTkAgg(fig, master=cpuTab)
-    canvas.get_tk_widget().grid(row=1, column=1)
+    canvas.get_tk_widget().grid(row=1, column=1, padx=40, sticky="nsew")
+
     cpu_label = cpu_page()
     cpu_make = cpuGetInfo() 
     cpu_label.config(text=cpu_make)
