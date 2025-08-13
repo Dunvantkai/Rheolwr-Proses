@@ -8,6 +8,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 # pip install gputil
 # pip install psutil
 # pip install matplotlib
+# pip install tk
 from tkinter import *
 import tkinter as tk
 from tkinter import ttk
