@@ -74,6 +74,7 @@ def cpu_page():
     return cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3
 
 def gpu_page():
+    global gpu_label_fmem, gpu_label_umem
     gpu_label0 = Label(gpuTab, text="")
     gpu_label0.grid(row=0, column=0)  
     gpu_label = Label(gpuTab, text="")
@@ -81,9 +82,9 @@ def gpu_page():
     gpu_label_mem = Label(gpuTab, text="")
     gpu_label_mem.grid(row=2, column=2, padx=20)   
     gpu_label_fmem = Label(gpuTab, text="")
-    gpu_label_fmem.grid(row=4, column=1, padx=20)
+    gpu_label_fmem.grid(row=3, column=1, padx=20)
     gpu_label_umem = Label(gpuTab, text="")
-    gpu_label_umem.grid(row=4, column=2, padx=20)
+    gpu_label_umem.grid(row=3, column=2, padx=20)
     return gpu_label0, gpu_label, gpu_label_mem, gpu_label_fmem, gpu_label_umem
 # -- sets page
 def show_cpu():
@@ -104,11 +105,14 @@ def show_cpu():
     GraphUsageUpdate(plot1, canvas, cpuTab)
 
 def show_gpu():
-    gpu_label0, gpu_label, gpu_label_mem,gpu_label_fmem ,gpu_label_umem  = gpu_page()
+    gpu_label0, gpu_label, gpu_label_mem, gpu_label_fmem, gpu_label_umem  = gpu_page()
     gpu_make, gpu_mem = gpuGetInfo() 
+    new_value, gpu_FMem, gpu_UMem  = gpuGetUsage()
     gpu_label.config(text=gpu_make)
     gpu_label0.config(text="GPU")
     gpu_label_mem.config(text=f"{gpu_mem}: Megabytes")
+    gpu_label_fmem.config(text=f"{gpu_FMem}: Free VRAM")
+    gpu_label_umem.config(text=f"{gpu_UMem}: Used VRAM")
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
@@ -129,7 +133,6 @@ def GraphUpdate(new_value, plot1, canvas):
     plot1.set_ylim(0, 100)
     plot1.set_xticks([])
     canvas.draw()
-    # print("update")
 
 def GraphUsageUpdate(plot1, canvas, tab_frame):
     global task
@@ -137,9 +140,9 @@ def GraphUsageUpdate(plot1, canvas, tab_frame):
         new_value = cpuGetUsage()
     elif notebook.tab(notebook.select(), "text").lower() == "GPU".lower():
         new_value, gpu_FMem, gpu_UMem  = gpuGetUsage()
-        gpu_label0, gpu_label, gpu_label_mem,gpu_label_fmem ,gpu_label_umem  = gpu_page()
-        gpu_label_fmem.config(text=f"{gpu_FMem}: Megabytes")
-        gpu_label_umem.config(text=f"{gpu_UMem}: Megabytes")
+        gpu_label_fmem.config(text=f"{gpu_FMem}: Free VRAM")
+        gpu_label_umem.config(text=f"{gpu_UMem}: Used VRAM")
+        
     else:
         return
     GraphUpdate(new_value, plot1, canvas)
