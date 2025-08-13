@@ -1,3 +1,4 @@
+get-pip.py
 pip install wmi
 pip install gputil
 pip install psutil
