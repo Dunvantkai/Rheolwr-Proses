@@ -1,4 +1,3 @@
-import platform
 import wmi
 import GPUtil
 import psutil
