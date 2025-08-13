@@ -39,7 +39,7 @@ def gpuGetInfo():
     for gpu in gpus:
         gpu_make = gpu.name
         gpu_mem = gpu.memoryTotal
-        return gpu_make + gpu_mem
+        return gpu_make, gpu_mem
 
 def cpu_page():
     cpu_label = Label(cpuTab, text="")
@@ -49,7 +49,9 @@ def cpu_page():
 def gpu_page():
     gpu_label = Label(gpuTab, text="")
     gpu_label.grid(row=0, column=0)   
-    return gpu_label
+    gpu_label_mem = Label(gpuTab, text="")
+    gpu_label_mem.grid(row=4, column=0)   
+    return gpu_label, gpu_label_mem
 
 def show_cpu():
     cpu_label = cpu_page()
@@ -58,9 +60,11 @@ def show_cpu():
     notebook.select(cpuTab)
 
 def show_gpu():
-    gpu_label = gpu_page()
-    Gpu_make = gpuGetInfo() 
-    gpu_label.config(text=Gpu_make)
+    gpu_label, gpu_label_mem = gpu_page()
+    gpu_make, gpu_mem = gpuGetInfo() 
+    print(gpu_make, gpu_mem)
+    gpu_label.config(text=gpu_make)
+    gpu_label_mem.config(text=f"Total VRAM: {gpu_mem} MB")
     notebook.select(gpuTab)
 
 def show_ram():
