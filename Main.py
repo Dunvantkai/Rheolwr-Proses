@@ -90,6 +90,10 @@ def gpu_page():
     gpu_label_umem = Label(gpuTab, text="")
     gpu_label_umem.grid(row=3, column=2, padx=20)
     return gpu_label0, gpu_label, gpu_label_mem, gpu_label_fmem, gpu_label_umem
+def ram_page():
+    ram_label0 = Label(ramTab, text="")
+    ram_label0.grid(row=0, column=0)
+    return ram_label0
 # -- sets page
 def show_cpu():
     cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3 = cpu_page()
@@ -131,7 +135,18 @@ def show_gpu():
     GraphUsageUpdate(plot1, canvas, gpuTab)
 
 def show_ram():
+    ram_label0 = ram_page()
+    ram_label0.config(text="r
+    fig = Figure(figsize=(4, 2), dpi=100)
+    plot1 = fig.add_subplot(111)
+    plot1.set_ylim(0, 100)
+    plot1.set_facecolor('lightgray')
+    fig.patch.set_facecolor(bg_colour)
+    plot1.set_xticks([])
+    canvas = FigureCanvasTkAgg(fig, master=ramTab)
+    canvas.get_tk_widget().grid(row=1, column=0, padx=40,columnspan=8)
     notebook.select(ramTab)
+    GraphUsageUpdate(plot1, canvas, ramTab)
 
 def GraphUpdate(new_value, plot1, canvas):
     data.pop(0)
