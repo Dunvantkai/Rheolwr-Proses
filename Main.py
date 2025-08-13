@@ -20,6 +20,8 @@ root.resizable(width=False, height=False)
 style = ttk.Style()
 style.layout("TNotebook", [])
 style.layout("TNotebook.Tab", [])
+global bg_colour
+bg_colour = '#f0f0f0'
 task=None
 # -- builds tabs
 notebook = ttk.Notebook(root)
@@ -61,7 +63,8 @@ def gpuGetUsage():
         return round(gpu_usage), gpu_FMem, gpu_UMem
 # -- build page
 def cpu_page():
-    cpu_label0 = Label(cpuTab, text="")
+    global cpu_label0
+    cpu_label0 = Label(cpuTab, text="") 
     cpu_label0.grid(row=0, column=0)  
     cpu_label = Label(cpuTab, text="")
     cpu_label.grid(row=2, column=1, padx=20)   
@@ -74,7 +77,7 @@ def cpu_page():
     return cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3
 
 def gpu_page():
-    global gpu_label_fmem, gpu_label_umem
+    global gpu_label0, gpu_label_fmem, gpu_label_umem
     gpu_label0 = Label(gpuTab, text="")
     gpu_label0.grid(row=0, column=0)  
     gpu_label = Label(gpuTab, text="")
@@ -98,6 +101,8 @@ def show_cpu():
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
+    plot1.set_facecolor('lightgray')
+    fig.patch.set_facecolor(bg_colour)
     plot1.set_xticks([])
     canvas = FigureCanvasTkAgg(fig, master=cpuTab)
     canvas.get_tk_widget().grid(row=1, column=0, padx=40,columnspan=8)
@@ -116,6 +121,8 @@ def show_gpu():
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
+    plot1.set_facecolor('lightgray')
+    fig.patch.set_facecolor(bg_colour)
     plot1.set_xticks([])
     canvas = FigureCanvasTkAgg(fig, master=gpuTab)
     canvas.get_tk_widget().grid(row=1, column=0, padx=40,columnspan=8)
@@ -138,11 +145,12 @@ def GraphUsageUpdate(plot1, canvas, tab_frame):
     global task
     if notebook.tab(notebook.select(), "text").lower() == "CPU".lower():
         new_value = cpuGetUsage()
+        cpu_label0.config(text=f"CPU: {new_value}%")
     elif notebook.tab(notebook.select(), "text").lower() == "GPU".lower():
         new_value, gpu_FMem, gpu_UMem  = gpuGetUsage()
+        gpu_label0.config(text=f"GPU: {new_value}%")
         gpu_label_fmem.config(text=f"{gpu_FMem}: Free VRAM")
         gpu_label_umem.config(text=f"{gpu_UMem}: Used VRAM")
-        
     else:
         return
     GraphUpdate(new_value, plot1, canvas)
