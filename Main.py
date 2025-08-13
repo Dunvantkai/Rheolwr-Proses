@@ -1,6 +1,6 @@
 import wmi
 import GPUtil
-import psutil
+# import psutil
 # pip install wmi
 # pip install gputil
 # pip install psutil
