@@ -1,7 +1,9 @@
 import wmi
 import GPUtil
+import psutil
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import time
 # import psutil
 # pip install wmi
 # pip install gputil
@@ -27,15 +29,15 @@ ramTab = Frame(notebook)
 notebook.add(cpuTab, text="CPU")
 notebook.add(gpuTab, text="GPU")
 notebook.add(ramTab, text="RAM")
-notebook.grid(row=0, column=1)
+notebook.grid(row=0, column=1, rowspan=8)
 # -- graph
 MAX_POINTS = 32
 data = [0] * MAX_POINTS  
 # -- info get
 def cpuGetInfo():
     i = wmi.WMI()
-    for processor in i.Win32_Processor():
-        cpu_make = processor.Name
+    for cpu in i.Win32_Processor():
+        cpu_make = cpu.Name
         return cpu_make
     
 def gpuGetInfo():
@@ -44,6 +46,10 @@ def gpuGetInfo():
         gpu_make = gpu.name
         gpu_mem = gpu.memoryTotal
         return gpu_make, gpu_mem
+# -- Usage get
+def cpuGetUsage():
+    cpu_usage = psutil.cpu_percent(interval=0)
+    return round(cpu_usage)
 # -- build page
 def cpu_page():
     cpu_label = Label(cpuTab, text="")
@@ -58,42 +64,53 @@ def gpu_page():
     return gpu_label, gpu_label_mem
 # -- sets page
 def show_cpu():
+    cpu_label = cpu_page()
+    cpu_make = cpuGetInfo() 
+    cpu_label.config(text=cpu_make)
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
     plot1.set_xticks([])
     canvas = FigureCanvasTkAgg(fig, master=cpuTab)
-    canvas.get_tk_widget().grid(row=1, column=1, padx=40, sticky="nsew")
-
-    cpu_label = cpu_page()
-    cpu_make = cpuGetInfo() 
-    cpu_label.config(text=cpu_make)
+    canvas.get_tk_widget().grid(row=1, column=1, padx=40)
     notebook.select(cpuTab)
+    GraphUsageUpdate(plot1, canvas, cpuTab)
 
 def show_gpu():
     gpu_label, gpu_label_mem = gpu_page()
     gpu_make, gpu_mem = gpuGetInfo() 
     gpu_label.config(text=gpu_make)
-    gpu_label_mem.config(text=f"Total VRAM: {gpu_mem} MB")
+    gpu_label_mem.config(text=f"Total VRAM: {gpu_mem} GB")
+    fig = Figure(figsize=(4, 2), dpi=100)
+    plot1 = fig.add_subplot(111)
+    plot1.set_ylim(0, 100)
+    plot1.set_xticks([])
+    canvas = FigureCanvasTkAgg(fig, master=gpuTab)
+    canvas.get_tk_widget().grid(row=2, column=1, padx=40)
     notebook.select(gpuTab)
 
 def show_ram():
     notebook.select(ramTab)
 
-# -- graph
+def GraphUpdate(new_value, plot1, canvas):
+    data.pop(0)
+    data.append(new_value)
+    plot1.clear()
+    plot1.plot(data, marker='o')
+    plot1.set_ylim(0, 100)
+    plot1.set_xticks([])
+    canvas.draw()
 
-# def update_graph(new_value):
-#     data.pop(0)
-#     data.append(new_value)
-#     plot1.clear()
-#     plot1.plot(data, marker='o')
-#     plot1.set_ylim(0, 100)
-#     canvas.draw()
-#     fig = Figure(figsize=(2, 1), dpi=100)
-#     plot1 = fig.add_subplot(111)
-#     plot1.set_ylim(0, 100)
-#     canvas = FigureCanvasTkAgg(fig, master=root)
-#     canvas.get_tk_widget().grid(column=1, row=4)
+def GraphUsageUpdate(plot1, canvas, tab_frame):
+    print (tab_frame)
+    if tab_frame == "cpuTab":
+        new_value = cpuGetUsage()
+    elif tab_frame == "gpuTab":
+        print ("nonbuildyet")
+        # new_value = gpuGetUsage()
+    new_value = cpuGetUsage()
+    GraphUpdate(new_value, plot1, canvas)
+    tab_frame.after(1000, GraphUsageUpdate, plot1, canvas, tab_frame)
 
 Button(root, text="CPU", command=show_cpu, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=0, sticky="nw", padx=10, pady=8)
 Button(root, text="GPU", command=show_gpu, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=1, sticky="nw", padx=10, pady=8)
