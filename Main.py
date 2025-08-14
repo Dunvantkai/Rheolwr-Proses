@@ -81,7 +81,7 @@ def cpu_page():
     return cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3
 
 def gpu_page():
-    global gpu_label0, gpu_label_fmem, gpu_label_umem, gpu_label_temp
+    global gpu_label_use, gpu_label_fmem, gpu_label_umem, gpu_label_temp
     gpu_label0 = Label(gpuTab, text="")
     gpu_label0.grid(row=0, column=0)  
     gpu_label = Label(gpuTab, text="")
@@ -92,9 +92,11 @@ def gpu_page():
     gpu_label_fmem.grid(row=3, column=1, padx=20)
     gpu_label_umem = Label(gpuTab, text="")
     gpu_label_umem.grid(row=3, column=2, padx=20)
+    gpu_label_use = Label(gpuTab, text="")
+    gpu_label_use.grid(row=4, column=1) 
     gpu_label_temp = Label(gpuTab, text="")
     gpu_label_temp.grid(row=4, column=2, padx=20)
-    return gpu_label0, gpu_label, gpu_label_mem, gpu_label_fmem, gpu_label_umem, gpu_label_temp
+    return gpu_label0, gpu_label, gpu_label_mem, gpu_label_fmem, gpu_label_umem, gpu_label_use, gpu_label_temp
 def ram_page():
     ram_label0 = Label(ramTab, text="")
     ram_label0.grid(row=0, column=0)
@@ -120,7 +122,7 @@ def show_cpu():
     GraphUsageUpdate(plot1, canvas, cpuTab)
 
 def show_gpu():
-    gpu_label0, gpu_label, gpu_label_mem, gpu_label_fmem, gpu_label_umem, gpu_label_temp  = gpu_page()
+    gpu_label0, gpu_label, gpu_label_mem, gpu_label_fmem, gpu_label_umem, gpu_label_use, gpu_label_temp  = gpu_page()
     gpu_make, gpu_mem = gpuGetInfo() 
     new_value, gpu_FMem, gpu_UMem, gpu_temp  = gpuGetUsage()
     gpu_label.config(text=gpu_make)
@@ -129,6 +131,7 @@ def show_gpu():
     gpu_label_fmem.config(text=f"{gpu_FMem}: Free VRAM")
     gpu_label_umem.config(text=f"{gpu_UMem}: Used VRAM")
     gpu_label_temp.config(text=f"Temp: {gpu_temp} C")
+    gpu_label_use.config(text=f"Utilization: {new_value}%")
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
@@ -170,7 +173,7 @@ def GraphUsageUpdate(plot1, canvas, tab_frame):
         cpu_label0.config(text=f"CPU: {new_value}%")
     elif notebook.tab(notebook.select(), "text").lower() == "GPU".lower():
         new_value, gpu_FMem, gpu_UMem, gpu_temp  = gpuGetUsage()
-        gpu_label0.config(text=f"GPU: {new_value}%")
+        gpu_label_use.config(text=f"Utilization: {new_value}%")
         gpu_label_fmem.config(text=f"{round(gpu_FMem)}: Free VRAM")
         gpu_label_umem.config(text=f"{round(gpu_UMem)}: Used VRAM")
         gpu_label_temp.config(text=f"Temp: {gpu_temp} C")
