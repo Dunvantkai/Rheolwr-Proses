@@ -67,7 +67,7 @@ def gpuGetUsage():
         return round(gpu_usage), gpu_FMem, gpu_UMem, gpu_temp
 # -- build page
 def cpu_page():
-    global cpu_label0
+    global cpu_label3
     cpu_label0 = Label(cpuTab, text="") 
     cpu_label0.grid(row=0, column=0)  
     cpu_label = Label(cpuTab, text="")
@@ -105,11 +105,11 @@ def ram_page():
 def show_cpu():
     cpu_label0, cpu_label, cpu_label1, cpu_label2, cpu_label3 = cpu_page()
     cpu_make, cpu_cores, cpu_speed = cpuGetInfo() 
-    cpu_label0.config(text="CPU")
+    cpu_label0.config(text=" CPU")
     cpu_label.config(text=cpu_make)
     cpu_label1.config(text=f"Cores: {cpu_cores}")
     cpu_label2.config(text=f"Max Clock Speed: {cpu_speed} (MHz):")
-    cpu_label3.config(text="Temp: ??")
+    cpu_label3.config(text=f"Utilization:")
     fig = Figure(figsize=(4, 2), dpi=100)
     plot1 = fig.add_subplot(111)
     plot1.set_ylim(0, 100)
@@ -170,7 +170,7 @@ def GraphUsageUpdate(plot1, canvas, tab_frame):
     global task
     if notebook.tab(notebook.select(), "text").lower() == "CPU".lower():
         new_value = cpuGetUsage()
-        cpu_label0.config(text=f"CPU: {new_value}%")
+        cpu_label3.config(text=f"Utilization: {new_value}%")
     elif notebook.tab(notebook.select(), "text").lower() == "GPU".lower():
         new_value, gpu_FMem, gpu_UMem, gpu_temp  = gpuGetUsage()
         gpu_label_use.config(text=f"Utilization: {new_value}%")
