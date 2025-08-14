@@ -21,9 +21,11 @@ root.resizable(width=False, height=False)
 style = ttk.Style()
 style.layout("TNotebook", [])
 style.layout("TNotebook.Tab", [])
+# --tasks
+task=None
+# -- colours
 global bg_colour
 bg_colour = '#f0f0f0'
-task=None
 # -- builds tabs
 notebook = ttk.Notebook(root)
 cpuTab = Frame(notebook)
@@ -169,8 +171,8 @@ def GraphUsageUpdate(plot1, canvas, tab_frame):
     elif notebook.tab(notebook.select(), "text").lower() == "GPU".lower():
         new_value, gpu_FMem, gpu_UMem, gpu_temp  = gpuGetUsage()
         gpu_label0.config(text=f"GPU: {new_value}%")
-        gpu_label_fmem.config(text=f"{gpu_FMem}: Free VRAM")
-        gpu_label_umem.config(text=f"{gpu_UMem}: Used VRAM")
+        gpu_label_fmem.config(text=f"{round(gpu_FMem)}: Free VRAM")
+        gpu_label_umem.config(text=f"{round(gpu_UMem)}: Used VRAM")
         gpu_label_temp.config(text=f"Temp: {gpu_temp} C")
     else:
         return
@@ -179,16 +181,12 @@ def GraphUsageUpdate(plot1, canvas, tab_frame):
         root.after_cancel(task)
 
     task = tab_frame.after(1000, GraphUsageUpdate, plot1, canvas, tab_frame)
-
-
+    
 def on_close():
     os._exit(0) 
-root.protocol("WM_DELETE_WINDOW", on_close)
-
-
 Button(root, text="CPU", command=show_cpu, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=0, sticky="nw", padx=10, pady=8)
 Button(root, text="GPU", command=show_gpu, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=1, sticky="nw", padx=10, pady=8)
 Button(root, text="RAM", command=show_ram, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=2,  sticky="nw",padx=10, pady=8)
 Button(root, text="Quit", command=on_close, relief="solid", padx=40, pady=10, activebackground="grey", activeforeground="white").grid(column=0, row=3, padx=10, pady=8)
-
+root.protocol("WM_DELETE_WINDOW", on_close)
 root.mainloop()
